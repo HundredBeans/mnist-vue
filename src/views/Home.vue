@@ -1,15 +1,26 @@
 <template>
   <div :class="isVisorOpen ? 'visorOpen' : ''">
-    <h1>MNIST Model Training</h1>
-    <h2 v-if="isLoading">Downloading the Datasets .......</h2>
-    <div v-else>
-      <button @click="showExamples(data)">Show Data Examples</button>
-      <button @click="openVisor">Open Visor</button>
-      <button @click="showModelSummary">Compile Model</button>
-      <button @click="train(model, data)">Train the Model</button>
-      <button @click="saveModel">Save Model</button>
-      <button @click="showEvaluation">Show Evaluation</button>
-    </div>
+    <div v-if="isLoading">
+      <h1>Downloading MNIST Dataset......</h1>
+      </div>
+    <!-- <div v-else>
+      <v-btn @click="showExamples(data)">Show Data Examples</v-btn>
+      <v-btn @click="isVisorOpen ? closeVisor : openVisor">Open Visor</v-btn>
+      <v-btn @click="showModelSummary">Compile Model</v-btn>
+      <v-btn @click="train(model, data)">Train the Model</v-btn>
+      <v-btn @click="saveModel">Save Model</v-btn>
+      <v-btn @click="showEvaluation">Show Evaluation</v-btn>
+    </div> -->
+    <steps-card v-else
+      :openVisor="openVisor"
+      :isVisorOpen="isVisorOpen"
+      :closeVisor="closeVisor"
+      :showExamples="() => showExamples(data)"
+      :showModelSummary="showModelSummary"
+      :train="() => train(model, data)"
+      :showEvaluation="showEvaluation"
+      :saveModel="saveModel"
+    />
   </div>
 </template>
 
@@ -17,6 +28,8 @@
 import { MnistData } from "../dataset/data.js";
 import * as tf from "@tensorflow/tfjs";
 import * as tfvis from "@tensorflow/tfjs-vis";
+// Components
+import StepsCard from "../components/StepsCard.vue";
 
 const classNames = [
   "Zero",
@@ -38,6 +51,9 @@ const NUM_OUTPUT_CLASSES = 10;
 
 export default {
   name: "Home",
+  components: {
+    StepsCard,
+  },
   data: () => {
     return {
       isLoading: false,
@@ -262,6 +278,7 @@ export default {
       await this.showConfusion(this.model, this.data);
     },
     async openVisor() {
+      console.log("open");
       await this.visor.open();
     },
     async showModelSummary() {
@@ -274,10 +291,17 @@ export default {
     },
     async saveModel() {
       await this.model.save("localstorage://mnist-model");
+      this.$toasted.show("Model Saved", {
+        icon: 'check',
+        type: 'success'
+      })
+    },
+    closeVisor() {
+      this.visor.close();
     },
   },
   destroyed() {
-    this.visor.close();
+    this.closeVisor();
   },
 };
 </script>
